@@ -121,4 +121,3 @@ bool Map::isValid(Node cur, Point dst){
     }
     return true;
 }
-

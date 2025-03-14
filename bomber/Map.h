@@ -30,15 +30,15 @@ class Map {
 
     struct NodeHash {
     size_t operator()(const Node& s) const {
-        size_t h1 = std::hash<Point>{}(s.position);
-        size_t h2 = std::hash<size_t>{}(s.bombCount);
+        size_t h1 = hash<Point>{}(s.position);
+        size_t h2 = hash<size_t>{}(s.bombCount);
         size_t h3 = 0;
         for(const auto& bomb : s.current_bombs){
-            h3 ^= std::hash<Point>{}(bomb);
+            h3 ^= hash<Point>{}(bomb);
         }
         size_t h4 = 0;
         for(const auto& wall : s.current_walls){
-            h4 ^= std::hash<Point>{}(wall);
+            h4 ^= hash<Point>{}(wall);
         }
         return h1 ^ h2 ^ h3 ^ h4;
     }
