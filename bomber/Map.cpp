@@ -45,7 +45,7 @@ std::string Map::route(Point src, Point dst){
     }
 
     Node cur = Node{src, 0, "", bombs, walls}; 
-    visited.insert(to_string(cur.position.lat) + ", " + to_string(cur.position.lng) + ", " + to_string(cur.bombCount));
+    visited.insert(cur);
     exploration.push(cur);
 
     while(!exploration.empty()){
@@ -63,7 +63,6 @@ std::string Map::route(Point src, Point dst){
         }
 
         for (size_t i = 0; i < 4; i++){
-            cout << current.path << '\n';
             int newLat = current.position.lat + dy[i];
             int newLng = current.position.lng + dx[i];
             char direction = dir[i];
@@ -85,17 +84,15 @@ std::string Map::route(Point src, Point dst){
                 curr_bombs.erase(curr_bombs.find(newPoint));
                 bomb_Count++;
             }
+            if(curr_walls.find(newPoint) != curr_walls.end() && bomb_Count > 0){
+                curr_walls.erase(curr_walls.find(newPoint));
+                bomb_Count --;
+            } 
+            Node visiting =  Node{newPoint, bomb_Count, current.path + direction, curr_bombs, curr_walls};
 
-            string current_string = to_string(newPoint.lat) + ", " + to_string(newPoint.lng) + ", " + to_string(bomb_Count);
-            if(visited.find(current_string) == visited.end()){
+            if(visited.find(visiting) == visited.end()){
                 
-                visited.insert(current_string);
-                if(curr_walls.find(newPoint) != curr_walls.end() && bomb_Count > 0){
-                    curr_walls.erase(curr_walls.find(newPoint));
-                    bomb_Count --;
-                } 
-                Node visiting =  Node{newPoint, bomb_Count, current.path + direction, curr_bombs, curr_walls};
-
+                visited.insert(visiting);
                 exploration.push(visiting);
             }
 
@@ -113,10 +110,10 @@ std::string Map::route(Point src, Point dst){
 
 
 bool Map::isValid(Node cur, Point dst){
-    if(dst.lat < 0 || dst.lng < 0 || dst.lat >= static_cast<int>(map[0].size()) || dst.lng >= static_cast<int>(map.size())){
+    if(dst.lat < 0 || dst.lng < 0 || dst.lat >= static_cast<int>(map[0].size()) || dst.lng > static_cast<int>(map.size())){
         return false;
     }
-    if(walls.find(dst) != walls.end() && cur.bombCount == 0){
+    if(cur.current_walls.find(dst) != cur.current_walls.end() && cur.bombCount == 0){
         return false;
     }
     if(waters.find(dst) != waters.end()){
