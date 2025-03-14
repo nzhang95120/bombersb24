@@ -37,19 +37,18 @@ vector<char> dir = {'e', 's', 'w', 'n'};
 
 std::string Map::route(Point src, Point dst){
 
-    if (src.lat < 0 || src.lng < 0 || src.lat >= static_cast<int>(map.size()) || src.lng >= static_cast<int>(map[0].size())){
+    if (src.lat < 0 || src.lng < 0 || src.lat >= static_cast<int>(map.size()) || src.lng >= static_cast<int>(map[0].size()) || walls.find(src) != walls.end() || waters.find(src) != waters.end()){
         throw PointError(src); 
     }
-    if (dst.lat < 0 || dst.lng < 0 || dst.lat >= static_cast<int>(map.size()) || dst.lng >= static_cast<int>(map[0].size())) {
+    if (dst.lat < 0 || dst.lng < 0 || dst.lat >= static_cast<int>(map.size()) || dst.lng >= static_cast<int>(map[0].size()) || waters.find(dst) != waters.end()) {
         throw PointError(dst);
     }
 
-    Node cur = Node{src, 0, "", bombs, walls}; // 
+    Node cur = Node{src, 0, "", bombs, walls}; 
     visited.insert(to_string(cur.position.lat) + ", " + to_string(cur.position.lng) + ", " + to_string(cur.bombCount));
     exploration.push(cur);
 
     while(!exploration.empty()){
-
         Node current = exploration.front();
         exploration.pop();
         
@@ -64,6 +63,7 @@ std::string Map::route(Point src, Point dst){
         }
 
         for (size_t i = 0; i < 4; i++){
+            cout << current.path << '\n';
             int newLat = current.position.lat + dy[i];
             int newLng = current.position.lng + dx[i];
             char direction = dir[i];
