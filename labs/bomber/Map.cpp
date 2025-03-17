@@ -63,7 +63,6 @@ std::string Map::route(Point src, Point dst){
         }
 
         for (size_t i = 0; i < 4; i++){
-            cout << current.path << endl;
             int newLat = current.position.lat + dy[i];
             int newLng = current.position.lng + dx[i];
             char direction = dir[i];
