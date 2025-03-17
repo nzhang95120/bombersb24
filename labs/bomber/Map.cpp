@@ -43,8 +43,15 @@ std::string Map::route(Point src, Point dst){
     if (dst.lat < 0 || dst.lng < 0 || dst.lat >= static_cast<int>(map.size()) || dst.lng >= static_cast<int>(map[0].size()) || waters.find(dst) != waters.end()) {
         throw PointError(dst);
     }
+    size_t initialBombCount = 0;
+    unordered_set<Point> curr_bombs = bombs;
 
-    Node cur = Node{src, 0, "", bombs, walls}; 
+    if (bombs.find(src) != bombs.end()) {
+        initialBombCount = 1;
+        curr_bombs.erase(src); 
+    }
+
+    Node cur = Node{src, initialBombCount, "", curr_bombs, walls}; 
     visited.insert(cur);
     exploration.push(cur);
 
