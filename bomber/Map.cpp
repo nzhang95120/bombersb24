@@ -63,6 +63,7 @@ std::string Map::route(Point src, Point dst){
         }
 
         for (size_t i = 0; i < 4; i++){
+            cout << current.path << endl;
             int newLat = current.position.lat + dy[i];
             int newLng = current.position.lng + dx[i];
             char direction = dir[i];
@@ -110,7 +111,7 @@ std::string Map::route(Point src, Point dst){
 
 
 bool Map::isValid(Node cur, Point dst){
-    if(dst.lat < 0 || dst.lng < 0 || dst.lat >= static_cast<int>(map[0].size()) || dst.lng >= static_cast<int>(map.size())){
+    if(dst.lat < 0 || dst.lng < 0 || dst.lat >= static_cast<int>(map.size()) || dst.lng >= static_cast<int>(map[0].size())){
         return false;
     }
     if(cur.current_walls.find(dst) != cur.current_walls.end() && cur.bombCount == 0){
