@@ -1,4 +1,5 @@
-#include "Map.h"
++1 (916) 906-1635:
+	#include "Map.h"
 #include "Errors.h"
 #include <sstream>
 #include <string>
@@ -37,21 +38,26 @@ vector<char> dir = {'e', 's', 'w', 'n'};
 
 std::string Map::route(Point src, Point dst){
 
-    if (src.lat < 0 || src.lng < 0 || src.lat >= static_cast<int>(map.size()) || src.lng >= static_cast<int>(map[0].size()) || waters.find(src) != waters.end()){
+    if (src.lat < 0 || src.lng < 0 ||
+        src.lat >= static_cast<int>(map.size()) || src.lng >= static_cast<int>(map[0].size()) ||
+        walls.find(src) != walls.end() || waters.find(src) != waters.end()){
         throw PointError(src); 
     }
-    if (dst.lat < 0 || dst.lng < 0 || dst.lat >= static_cast<int>(map.size()) || dst.lng >= static_cast<int>(map[0].size()) || waters.find(dst) != waters.end()) {
+    if (dst.lat < 0 || dst.lng < 0 ||
+        dst.lat >= static_cast<int>(map.size()) || dst.lng >= static_cast<int>(map[0].size()) ||
+        waters.find(dst) != waters.end()) {
         throw PointError(dst);
     }
-    size_t initialBombCount = 0;
-    unordered_set<Point> curr_bombs = bombs;
 
-    if (bombs.find(src) != bombs.end()) {
-        initialBombCount = 1;
-        curr_bombs.erase(src); 
+    // Check if the starting point contains a bomb.
+    size_t initialBombCount = 0;
+    unordered_set<Point> initialBombs = bombs;
+    if (initialBombs.find(src) != initialBombs.end()){
+        initialBombs.erase(src);
+        initialBombCount++;
     }
 
-    Node cur = Node{src, initialBombCount, "", curr_bombs, walls}; 
+    Node cur = Node{src, initialBombCount, "", initialBombs, walls}; 
     visited.insert(cur);
     exploration.push(cur);
 
@@ -60,12 +66,10 @@ std::string Map::route(Point src, Point dst){
         exploration.pop();
         
         if (current.position.lat == dst.lat && current.position.lng == dst.lng){
-            
             while (!exploration.empty()){
                 exploration.pop();
             }
             visited.clear();
-            
             return current.path;
         }
 
@@ -98,12 +102,9 @@ std::string Map::route(Point src, Point dst){
             Node visiting =  Node{newPoint, bomb_Count, current.path + direction, curr_bombs, curr_walls};
 
             if(visited.find(visiting) == visited.end()){
-                
                 visited.insert(visiting);
                 exploration.push(visiting);
             }
-
-            
         }
     }
 
@@ -113,8 +114,6 @@ std::string Map::route(Point src, Point dst){
     visited.clear();
     throw RouteError(src, dst);
 }
-
-
 
 bool Map::isValid(Node cur, Point dst){
     if(dst.lat < 0 || dst.lng < 0 || dst.lat >= static_cast<int>(map.size()) || dst.lng >= static_cast<int>(map[0].size())){
