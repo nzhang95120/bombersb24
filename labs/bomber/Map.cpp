@@ -35,7 +35,6 @@ Map::Map(std::istream& stream){
 
 std::string Map::route(Point src, Point dst){
 
-    const int bomb_reward = 2;
 
     if (src.lat < 0 || src.lng < 0 ||
         src.lat >= static_cast<int>(map.size()) || src.lng >= static_cast<int>(map[0].size()) ||
@@ -56,6 +55,7 @@ std::string Map::route(Point src, Point dst){
     }
 
     int initial_h = abs(src.lat - dst.lat) + abs(src.lng - dst.lng);
+    const int bomb_reward = std::max(15, initial_h / 2);;
     Node cur = Node{src, initialBombCount, "", collected_bombs, {}, initial_h - static_cast<int>(bomb_reward * initialBombCount)}; 
     visited[cur] = 0;
     exploration.push(cur);
@@ -108,9 +108,6 @@ std::string Map::route(Point src, Point dst){
 
             string newPath = current.path + direction;
             int new_g = newPath.size();
-            if (newBombCount < current.bombCount) {
-                new_g += 1;
-            }
             int new_h = abs(newPoint.lat - dst.lat) + abs(newPoint.lng - dst.lng);
             int new_priority = (new_g + new_h) - static_cast<int>(bomb_reward * newBombCount);
             Node visiting = {newPoint, newBombCount, newPath, new_collected, new_destroyed, new_priority};
