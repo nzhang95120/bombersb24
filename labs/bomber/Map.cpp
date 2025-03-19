@@ -30,6 +30,7 @@ Map::Map(std::istream& stream){
         row++;
     }
 
+
 }
 
 std::string Map::route(Point src, Point dst){
@@ -48,14 +49,14 @@ std::string Map::route(Point src, Point dst){
     }
 
     size_t initialBombCount = 0;
-    unordered_set<Point> initialBombs = bombs;
-    if (initialBombs.find(src) != initialBombs.end()){
-        initialBombs.erase(src);
-        initialBombCount++;
+    unordered_set<Point> collected_bombs;
+    if (bombs.count(src)) {
+        collected_bombs.insert(src);
+        initialBombCount = 1;
     }
 
     int initial_h = abs(src.lat - dst.lat) + abs(src.lng - dst.lng);
-    Node cur = Node{src, initialBombCount, "", initialBombs, walls, initial_h - static_cast<int>(bomb_reward * initialBombCount)}; 
+    Node cur = Node{src, initialBombCount, "", collected_bombs, {}, initial_h - static_cast<int>(bomb_reward * initialBombCount)}; 
     visited[cur] = 0;
     exploration.push(cur);
 
@@ -91,18 +92,19 @@ std::string Map::route(Point src, Point dst){
             }
 
             size_t newBombCount = current.bombCount;
-            unordered_set<Point> newBombs = current.current_bombs;
-            unordered_set<Point> newWalls = current.current_walls;
+            unordered_set<Point> new_collected = current.collected_bombs;
+            unordered_set<Point> new_destroyed = current.destroyed_walls;
 
-            if (newBombs.find(newPoint) != newBombs.end()) {
-                newBombs.erase(newPoint);
+            if (bombs.count(newPoint) && !new_collected.count(newPoint)) {
+                new_collected.insert(newPoint);
                 newBombCount++;
             }
 
-            if (newWalls.find(newPoint) != newWalls.end() && newBombCount > 0) {
-                newWalls.erase(newPoint);
+            if (walls.count(newPoint) && !new_destroyed.count(newPoint) && newBombCount > 0) {
+                new_destroyed.insert(newPoint);
                 newBombCount--;
             }
+
 
             string newPath = current.path + direction;
             int new_g = newPath.size();
@@ -111,13 +113,10 @@ std::string Map::route(Point src, Point dst){
             }
             int new_h = abs(newPoint.lat - dst.lat) + abs(newPoint.lng - dst.lng);
             int new_priority = (new_g + new_h) - static_cast<int>(bomb_reward * newBombCount);
-            Node visiting = {newPoint, newBombCount, newPath, newBombs, newWalls, new_priority};
+            Node visiting = {newPoint, newBombCount, newPath, new_collected, new_destroyed, new_priority};
 
             auto visitIt = visited.find(visiting);
-            if (visitIt == visited.end()) {
-                visited[visiting] = new_g;
-                exploration.push(visiting);
-            } else if (new_g < static_cast<int>(visitIt->second)) {
+            if (visitIt == visited.end() || new_g < static_cast<int>(visitIt->second)) {
                 visited[visiting] = new_g;
                 exploration.push(visiting);
             }
@@ -135,9 +134,10 @@ bool Map::isValid(Node cur, Point dst){
     if(dst.lat < 0 || dst.lng < 0 || dst.lat >= static_cast<int>(map.size()) || dst.lng >= static_cast<int>(map[0].size())){
         return false;
     }
-    if(cur.current_walls.find(dst) != cur.current_walls.end() && cur.bombCount == 0){
+    if (walls.count(dst) && !cur.destroyed_walls.count(dst) && cur.bombCount == 0){
         return false;
     }
+
     if(waters.find(dst) != waters.end()){
         return false;
     }

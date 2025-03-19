@@ -19,14 +19,14 @@ class Map {
         Point position;
         size_t bombCount;
         string path; 
-        unordered_set<Point> current_bombs;    
-        unordered_set<Point> current_walls; 
+        unordered_set<Point> collected_bombs; 
+        unordered_set<Point> destroyed_walls;  
         int priority;
         bool operator==(const Node& other) const {
         return position == other.position &&
                bombCount == other.bombCount &&
-               current_bombs == other.current_bombs &&
-               current_walls == other.current_walls;
+               collected_bombs == other.collected_bombs &&
+               destroyed_walls == other.destroyed_walls;
     }
     };
 
@@ -34,7 +34,10 @@ class Map {
     size_t operator()(const Node& s) const {
         size_t h1 = hash<Point>{}(s.position);
         size_t h2 = hash<size_t>{}(s.bombCount);
+        for (const auto& b : s.collected_bombs) h1 ^= hash<Point>{}(b);
+        for (const auto& w : s.destroyed_walls) h2 ^= hash<Point>{}(w);
         return h1 ^ h2;
+
     }
 };
 
@@ -53,6 +56,9 @@ class Map {
     const vector<int> dx = {1, 0, -1, 0};
     const vector<int> dy = {0, 1, 0, -1};
     const vector<char> dir = {'e', 's', 'w', 'n'};
+
+
+
     
 public:
     Map(std::istream& stream);
