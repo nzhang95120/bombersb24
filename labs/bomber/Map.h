@@ -9,6 +9,7 @@ using namespace std;
 #include <vector>
 #include <queue>
 #include <unordered_set>
+#include <unordered_map>
 
 
 
@@ -20,6 +21,7 @@ class Map {
         string path; 
         unordered_set<Point> current_bombs;    
         unordered_set<Point> current_walls; 
+        int priority;
         bool operator==(const Node& other) const {
         return position == other.position &&
                bombCount == other.bombCount &&
@@ -28,28 +30,29 @@ class Map {
     }
     };
 
-    struct NodeHash {
+    struct NodeHash { 
     size_t operator()(const Node& s) const {
         size_t h1 = hash<Point>{}(s.position);
         size_t h2 = hash<size_t>{}(s.bombCount);
-        size_t h3 = 0;
-        for(const auto& bomb : s.current_bombs){
-            h3 ^= hash<Point>{}(bomb);
-        }
-        size_t h4 = 0;
-        for(const auto& wall : s.current_walls){
-            h4 ^= hash<Point>{}(wall);
-        }
-        return h1 ^ h2 ^ h3 ^ h4;
+        return h1 ^ h2;
     }
 };
+
+    struct CompareNode {
+        bool operator()(const Node& a, const Node& b) {
+            return a.priority > b.priority; 
+        }
+    };
 
     vector<vector<Point>> map;
     unordered_set<Point> bombs;    
     unordered_set<Point> walls;   
     unordered_set<Point> waters;   
-    unordered_set<Node, NodeHash> visited;
-    queue<Node> exploration;
+    unordered_map<Node, size_t, NodeHash> visited;
+    priority_queue<Node, vector<Node>, CompareNode> exploration; 
+    const vector<int> dx = {1, 0, -1, 0};
+    const vector<int> dy = {0, 1, 0, -1};
+    const vector<char> dir = {'e', 's', 'w', 'n'};
     
 public:
     Map(std::istream& stream);

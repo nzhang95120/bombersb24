@@ -2,6 +2,7 @@
 #include "Errors.h"
 #include <sstream>
 #include <string>
+
 // Member Functions
 
 
@@ -31,11 +32,9 @@ Map::Map(std::istream& stream){
 
 }
 
-vector<int> dx = {1, 0, -1, 0};
-vector<int> dy = {0, 1, 0, -1};
-vector<char> dir = {'e', 's', 'w', 'n'}; 
-
 std::string Map::route(Point src, Point dst){
+
+    const int bomb_reward = 2;
 
     if (src.lat < 0 || src.lng < 0 ||
         src.lat >= static_cast<int>(map.size()) || src.lng >= static_cast<int>(map[0].size()) ||
@@ -48,7 +47,6 @@ std::string Map::route(Point src, Point dst){
         throw PointError(dst);
     }
 
-    // Check if the starting point contains a bomb.
     size_t initialBombCount = 0;
     unordered_set<Point> initialBombs = bombs;
     if (initialBombs.find(src) != initialBombs.end()){
@@ -56,15 +54,16 @@ std::string Map::route(Point src, Point dst){
         initialBombCount++;
     }
 
-    Node cur = Node{src, initialBombCount, "", initialBombs, walls}; 
-    visited.insert(cur);
+    int initial_h = abs(src.lat - dst.lat) + abs(src.lng - dst.lng);
+    Node cur = Node{src, initialBombCount, "", initialBombs, walls, initial_h - static_cast<int>(bomb_reward * initialBombCount)}; 
+    visited[cur] = 0;
     exploration.push(cur);
 
     while(!exploration.empty()){
-        Node current = exploration.front();
+        Node current = exploration.top();
         exploration.pop();
         
-        if (current.position.lat == dst.lat && current.position.lng == dst.lng){
+        if (current.position == dst) {
             while (!exploration.empty()){
                 exploration.pop();
             }
@@ -72,42 +71,60 @@ std::string Map::route(Point src, Point dst){
             return current.path;
         }
 
-        for (size_t i = 0; i < 4; i++){
+        auto it = visited.find(current);
+        if (it != visited.end() && current.path.size() > it->second) {
+            continue;
+        }
+
+        for (size_t i = 0; i < 4; ++i) {
             int newLat = current.position.lat + dy[i];
             int newLng = current.position.lng + dx[i];
             char direction = dir[i];
-            size_t bomb_Count = current.bombCount;
-            unordered_set<Point> curr_bombs = current.current_bombs;
-            unordered_set<Point> curr_walls = current.current_walls;
-            
-            if (newLat < 0 || newLng < 0 || newLat >= static_cast<int>(map.size()) || newLng >= static_cast<int>(map[0].size())) {
-                continue; 
-            }
-            
-            Point newPoint = map[newLat][newLng];
 
-            if (!isValid(current, newPoint)){
+            if (newLat < 0 || newLng < 0 || newLat >= static_cast<int>(map.size()) || newLng >= static_cast<int>(map[0].size())) {
                 continue;
             }
 
-            if(curr_bombs.find(newPoint) != curr_bombs.end()){
-                curr_bombs.erase(curr_bombs.find(newPoint));
-                bomb_Count++;
+            Point newPoint = map[newLat][newLng];
+            if (!isValid(current, newPoint)) {
+                continue;
             }
-            if(curr_walls.find(newPoint) != curr_walls.end() && bomb_Count > 0){
-                curr_walls.erase(curr_walls.find(newPoint));
-                bomb_Count --;
-            } 
-            Node visiting =  Node{newPoint, bomb_Count, current.path + direction, curr_bombs, curr_walls};
 
-            if(visited.find(visiting) == visited.end()){
-                visited.insert(visiting);
+            size_t newBombCount = current.bombCount;
+            unordered_set<Point> newBombs = current.current_bombs;
+            unordered_set<Point> newWalls = current.current_walls;
+
+            if (newBombs.find(newPoint) != newBombs.end()) {
+                newBombs.erase(newPoint);
+                newBombCount++;
+            }
+
+            if (newWalls.find(newPoint) != newWalls.end() && newBombCount > 0) {
+                newWalls.erase(newPoint);
+                newBombCount--;
+            }
+
+            string newPath = current.path + direction;
+            int new_g = newPath.size();
+            if (newBombCount < current.bombCount) {
+                new_g += 1;
+            }
+            int new_h = abs(newPoint.lat - dst.lat) + abs(newPoint.lng - dst.lng);
+            int new_priority = (new_g + new_h) - static_cast<int>(bomb_reward * newBombCount);
+            Node visiting = {newPoint, newBombCount, newPath, newBombs, newWalls, new_priority};
+
+            auto visitIt = visited.find(visiting);
+            if (visitIt == visited.end()) {
+                visited[visiting] = new_g;
+                exploration.push(visiting);
+            } else if (new_g < static_cast<int>(visitIt->second)) {
+                visited[visiting] = new_g;
                 exploration.push(visiting);
             }
         }
     }
 
-    while (!exploration.empty()){
+    while (!exploration.empty()) {
         exploration.pop();
     }
     visited.clear();
