@@ -24,9 +24,7 @@ class Map {
         int priority;
         bool operator==(const Node& other) const {
         return position == other.position &&
-               bombCount == other.bombCount &&
-               collected_bombs == other.collected_bombs &&
-               destroyed_walls == other.destroyed_walls;
+               bombCount == other.bombCount;
     }
     };
 

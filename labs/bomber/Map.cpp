@@ -55,7 +55,7 @@ std::string Map::route(Point src, Point dst){
     }
 
     int initial_h = abs(src.lat - dst.lat) + abs(src.lng - dst.lng);
-    const int bomb_reward = std::max(15, initial_h / 2);;
+    const int bomb_reward = std::max(3, initial_h / 5);
     Node cur = Node{src, initialBombCount, "", collected_bombs, {}, initial_h - static_cast<int>(bomb_reward * initialBombCount)}; 
     visited[cur] = 0;
     exploration.push(cur);
