@@ -40,12 +40,11 @@ std::string Map::route(Point src, Point dst){
         src.lat >= static_cast<int>(map.size()) || src.lng >= static_cast<int>(map[0].size())){
         throw PointError(src); 
     }
-    if(waters.find(src) != waters.end() || walls.find(src) != walls.end()){
-        throw RouteError(src, dst);
+    if(waters.find(dst) != waters.end()){
+        throw RouteError(src,dst); 
     }
     if (dst.lat < 0 || dst.lng < 0 ||
-        dst.lat >= static_cast<int>(map.size()) || dst.lng >= static_cast<int>(map[0].size()) ||
-        waters.find(dst) != waters.end()) {
+        dst.lat >= static_cast<int>(map.size()) || dst.lng >= static_cast<int>(map[0].size())) {
         throw PointError(dst);
     }
 
