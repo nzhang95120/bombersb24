@@ -38,9 +38,9 @@ namespace std {
   template <>
   struct hash<Point> {
     size_t operator()(const Point& p) const {
-      size_t hashLat = std::hash<int>{}(p.lat);
-      size_t hashLng = std::hash<int>{}(p.lng);
-      return hashLat ^ (hashLng << 1); 
+      size_t a = p.lat;
+      size_t b = p.lng;
+      return (a + b) * (a + b + 1) / 2 + b;
     }
   };
 }
