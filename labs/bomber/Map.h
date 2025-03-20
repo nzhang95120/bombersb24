@@ -25,7 +25,7 @@ class Map {
         bool operator==(const Node& other) const {
         return position == other.position &&
                bombCount == other.bombCount;// &&
-               //collected_bombs == other.collected_bombs;
+               collected_bombs == other.collected_bombs;
     }
     };
 
@@ -33,7 +33,7 @@ class Map {
     size_t operator()(const Node& s) const {
         size_t h1 = hash<Point>{}(s.position);
         size_t h2 = hash<size_t>{}(s.bombCount);
-        //for (const auto& b : s.collected_bombs) h1 ^= hash<Point>{}(b);
+        for (const auto& b : s.collected_bombs) h1 ^= hash<Point>{}(b);
         //for (const auto& w : s.destroyed_walls) h2 ^= hash<Point>{}(w);
         return h1 ^ h2;
 
