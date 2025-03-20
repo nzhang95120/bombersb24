@@ -36,8 +36,10 @@ Map::Map(std::istream& stream){
 std::string Map::route(Point src, Point dst){
 
 
+   
     if (src.lat < 0 || src.lng < 0 ||
-        src.lat >= static_cast<int>(map.size()) || src.lng >= static_cast<int>(map[0].size()) || walls.find(src) != walls.end()){
+        src.lat >= static_cast<int>(map.size()) || src.lng >= static_cast<int>(map[0].size()) ||
+        walls.find(src) != walls.end() || waters.find(src) != waters.end()){
         throw PointError(src); 
     }
     if(waters.find(dst) != waters.end()){
