@@ -112,6 +112,7 @@ std::string Map::route(Point src, Point dst){
             int new_h = abs(newPoint.lat - dst.lat) + abs(newPoint.lng - dst.lng);
             int new_priority = (new_g + new_h) - static_cast<int>(bomb_reward * newBombCount);
             Node visiting = {newPoint, newBombCount, newPath, new_collected, new_destroyed, new_priority};
+            cout << newPath << endl;
 
             auto visitIt = visited.find(visiting);
             if (visitIt == visited.end() || new_g < static_cast<int>(visitIt->second)) {
