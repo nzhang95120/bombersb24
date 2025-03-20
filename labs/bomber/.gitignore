@@ -2,4 +2,3 @@ main.o
 bomber
 Map.o
 Point.o
-makefile
